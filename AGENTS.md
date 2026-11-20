@@ -55,11 +55,19 @@ STOP and **teach the concept first** (see §4), then use it. Never slip a new fe
 - Sorting: `sorted(items)`, `key=`, `key=lambda r: r["cents"]`, `reverse=True`
 - Workbench: `uv run python file.py`, `uv run pyright` (strict mode)
 
+### Taught early (ahead of 13.8, via PRIMM in this repo)
+
+- Reading a file: `with open(path, encoding="utf-8") as f:` then `text = f.read()` gives one `str`
+- Newline `\n`: the invisible "Enter" between lines; `print` obeys it rather than showing it
+- `text.splitlines()` → `list[str]`, one item per line, `\n` removed
+- `row.split(",")` → `list[str]` of columns, the commas removed
+- `from mailroom import name` to use another file's function; without it → `NameError`
+
 ### Not yet learned (teach first before using)
 
-Anything not listed above, including: `if __name__ == "__main__":`, Python `import`, `len()`,
-`elif`, f-strings, string methods (`.strip()`, `.split()`, …), tuples, sets, `try`/`except`,
-reading files / CSV, dates, classes, `dataclass`, `pytest`, `input()`, `is None`, `range()`,
+Anything not listed above, including: `if __name__ == "__main__":`, `import x` (plain form), `len()`,
+`elif`, f-strings, other string methods (`.strip()`, …), slicing, `isinstance()`, tuples, sets, `try`/`except`,
+the `csv` module, dates, classes, `dataclass`, `pytest`, `input()`, `is None`, `range()`,
 `enumerate()`, list methods like `.append()`, `match`, async, external packages.
 
 When in doubt whether something was taught: **ask the learner**, don't assume.

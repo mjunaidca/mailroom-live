@@ -1,0 +1,16 @@
+[project]
+name = "mailroom-live"
+version = "0.1.0"
+description = "Mailroom: a learning project for Programming Fundamentals (Agent Factory, Chapter 13)"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.414",
+]
+
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.14"

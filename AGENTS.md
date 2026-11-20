@@ -62,10 +62,13 @@ STOP and **teach the concept first** (see §4), then use it. Never slip a new fe
 - `text.splitlines()` → `list[str]`, one item per line, `\n` removed
 - `row.split(",")` → `list[str]` of columns, the commas removed
 - `from mailroom import name` to use another file's function; without it → `NameError`
+- `import sys` (plain form, use with a dot) and `sys.argv`: the typed command words as a list,
+  `[0]` is the file name, `[1]` the first word after it
+- `if __name__ == "__main__":` front door: runs only when the file is run directly, not imported
 
 ### Not yet learned (teach first before using)
 
-Anything not listed above, including: `if __name__ == "__main__":`, `import x` (plain form), `len()`,
+Anything not listed above, including: `len()`,
 `elif`, f-strings, other string methods (`.strip()`, …), slicing, `isinstance()`, tuples, sets, `try`/`except`,
 the `csv` module, dates, classes, `dataclass`, `pytest`, `input()`, `is None`, `range()`,
 `enumerate()`, list methods like `.append()`, `match`, async, external packages.

@@ -1,4 +1,4 @@
-# check.py: tests for the tools in mailroom.py
+# checks.py: tests for the tools in mailroom.py
 
 from mailroom import read_subscribers, count_emails, count_group
 
@@ -14,3 +14,11 @@ assert count_emails(subscribers) == 24, "there should be 24 emails"
 assert count_group(subscribers, "daily-drinkers") == 8, "daily-drinkers should have 8 rows"
 
 print("all checks passed")
+
+# Behavior 4 (written before the code, checked by hand for now):
+# `uv run mailroom.py subscribers` reads data/subscribers.csv and prints exactly:
+#
+#   24 emails
+#   daily-drinkers: 8
+#   gift-buyers: 8
+#   tea-curious: 8

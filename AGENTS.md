@@ -89,11 +89,18 @@ STOP and **teach the concept first** (see §4), then use it. Never slip a new fe
 - `day.weekday()`: Monday is `0` … Sunday is `6`; step with `while not day.weekday() == 0:`
 - `day.year`, `day.month` as `int`; `date(year, month, 1)` builds a date; month 13 rolls to 1, year + 1
 
+### In use ahead of 13.11 (the learner asked for it; no PRIMM cycle on it yet)
+
+- `pytest` (a dev dependency): `uv run pytest` finds every `def test_...() -> None:` in
+  `test_*.py` files and runs it. A test passes if none of its `assert`s fail. No `import pytest` needed yet.
+- One test per behavior, named for the behavior it checks (e.g. `test_a_join_after_the_run_date_does_not_count`).
+- Not yet used: fixtures, `pytest.raises`, parametrize, `capsys`. Teach first before using.
+
 ### Not yet learned (teach first before using)
 
 Anything not listed above, including: `len()`,
 `elif`, f-strings, other string methods (`.strip()`, …), slicing, `isinstance()`, tuples, sets, `try`/`except`,
-the `csv` module, dates, classes, `dataclass`, `pytest`, `input()`, `is None`, `range()`,
+the `csv` module, dates, classes, `dataclass`, `input()`, `is None`, `range()`,
 `enumerate()`, list methods like `.append()`, `match`, async, external packages.
 
 When in doubt whether something was taught: **ask the learner**, don't assume.
@@ -132,7 +139,9 @@ Rules for the agent:
 
 - Tooling: **uv**, Python **3.14** (see `.python-version`), **pyright in strict mode** (`pyproject.toml`).
 - Every variable that needs it and every function has type labels (parameters and return type).
-- Every function gets at least one hand-checkable `assert` of its promise.
+- Every function gets at least one hand-checkable `assert` of its promise, written as a **pytest test**
+  in `test_mailroom.py` (the old `checks.py` is gone; its checks are now tests). Behaviors that need the
+  command line (the front door's printed output) are still listed there as comments and checked by hand.
 - Money is stored as **whole cents in `int`** (e.g. $48.25 → `4825`). Convert to dollars only when printing.
 - **Never read today's date inside the logic. Pass the run date in.** Functions take the run date
   as a parameter (e.g. `next_send(run_date: str) -> str`), so the same input always gives the same
@@ -145,12 +154,13 @@ Commands:
 
 ```bash
 uv run python main.py   # run
+uv run pytest           # tests: must all pass before any commit
 uv run pyright          # type check: must show 0 errors before any commit
 ```
 
 ## 6. Git workflow
 
 - Remote: GitHub `mjunaidca/mailroom-live`, branch `main`.
-- Before committing: run the file and `uv run pyright`; both must pass.
+- Before committing: run the file, `uv run pytest` and `uv run pyright`; all must pass.
 - Small commits with clear messages. Show `git status` / `git diff` to the learner before committing.
 - Ask before pushing.

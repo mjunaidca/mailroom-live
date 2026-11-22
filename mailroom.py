@@ -58,6 +58,19 @@ def next_send(run_date: str) -> str:
     return day.isoformat()
 
 
+def check_subject(issue_text: str) -> list[str]:
+    """Promise: give back the problems with the Subject line; [] means the subject is fine."""
+    for line in issue_text.splitlines():
+        if line.startswith("Subject:"):  # the line that begins with "Subject:"
+            subject: str = line.removeprefix("Subject:").strip()  # the words after it, outer spaces removed
+            if not subject:  # "" counts as "no": nothing left, or only spaces
+                return ["empty"]
+            if len(subject) > 50:  # the rule: 50 characters or fewer
+                return ["too long"]
+            return []
+    return ["missing"]  # no line began with "Subject:"
+
+
 # Front door: only runs for `uv run mailroom.py <name>`, not when imported
 if __name__ == "__main__":
     command: str = sys.argv[1]  # "subscribers" or "next-send"

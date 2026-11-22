@@ -96,10 +96,18 @@ STOP and **teach the concept first** (see §4), then use it. Never slip a new fe
 - One test per behavior, named for the behavior it checks (e.g. `test_a_join_after_the_run_date_does_not_count`).
 - Not yet used: fixtures, `pytest.raises`, parametrize, `capsys`. Teach first before using.
 
+### In use ahead of 13.8 (the learner asked for it; no PRIMM cycle on it yet)
+
+- `len(text)` → `int`: how many characters are in the text (spaces and punctuation count)
+- `line.startswith("Subject:")` → `bool`: does the text begin with exactly these characters
+- `line.removeprefix("Subject:")` → `str`: the text with that beginning taken off (unchanged if it isn't there)
+- `text.strip()` → `str`: the text with spaces trimmed off both ends; only spaces becomes `""`
+- A `return` inside a loop stops the whole function right there; code after the loop runs only if no `return` fired
+
 ### Not yet learned (teach first before using)
 
-Anything not listed above, including: `len()`,
-`elif`, f-strings, other string methods (`.strip()`, …), slicing, `isinstance()`, tuples, sets, `try`/`except`,
+Anything not listed above, including:
+`elif`, f-strings, other string methods (`.lower()`, `.replace()`, …), slicing, `isinstance()`, tuples, sets, `try`/`except`,
 the `csv` module, dates, classes, `dataclass`, `input()`, `is None`, `range()`,
 `enumerate()`, list methods like `.append()`, `match`, async, external packages.
 
@@ -134,6 +142,9 @@ Rules for the agent:
 6. **When something breaks, show the full error first.** Paste the complete output exactly as
    printed (traceback and all, not a summary) *before* changing any code or data. The learner
    reads it first; fixes come after.
+7. **The learner decides the test cases and their answers.** Never change an expected answer to
+   make a test pass. Change the code instead. If an answer looks wrong, stop and tell the learner
+   why; only the learner changes it.
 
 ## 5. Project conventions
 

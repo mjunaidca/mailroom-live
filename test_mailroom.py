@@ -3,7 +3,7 @@
 # pytest finds every function whose name starts with "test_" and runs it.
 # A test passes if none of its asserts fail.
 
-from mailroom import read_subscribers, count_emails, count_group, count_joined_since, next_send
+from mailroom import read_subscribers, count_emails, count_group, count_joined_since, next_send, check_subject
 
 
 # Behavior 1
@@ -53,6 +53,39 @@ def test_a_join_after_the_run_date_does_not_count() -> None:
 def test_the_next_send_is_the_first_monday_of_next_month() -> None:
     assert next_send("2026-11-20") == "2026-12-07", "after 2026-11-20 the next send is 2026-12-07"
     assert next_send("2026-12-07") == "2027-01-04", "after 2026-12-07 the next send is 2027-01-04"
+
+
+# Behavior 12: check_subject(issue_text) gives back a list of problems; [] means the subject is fine.
+# The rule (docs/email-rules.md): the first line is `Subject: ...`, 50 characters or fewer.
+# The learner decided these cases and their answers. Never change an answer to make a test pass.
+def test_a_normal_subject_has_no_problems() -> None:
+    issue: str = "Subject: The Steep Club opens Monday\nPreview: Your monthly tea box.\n"
+    assert check_subject(issue) == [], "a normal subject should have no problems"
+
+
+def test_a_50_character_subject_has_no_problems() -> None:
+    issue: str = "Subject: Your Steep Club box ships on Monday with new teas.\nPreview: Your monthly tea box.\n"
+    assert check_subject(issue) == [], "50 characters is allowed"
+
+
+def test_a_51_character_subject_is_too_long() -> None:
+    issue: str = "Subject: Your Steep Club box ships on Monday with fresh teas\nPreview: Your monthly tea box.\n"
+    assert check_subject(issue) == ["too long"], "51 characters is one too many"
+
+
+def test_an_empty_subject_is_empty() -> None:
+    issue: str = "Subject:\nPreview: Your monthly tea box.\n"
+    assert check_subject(issue) == ["empty"], "a subject with nothing in it is empty"
+
+
+def test_a_subject_of_only_spaces_is_empty() -> None:
+    issue: str = "Subject:     \nPreview: Your monthly tea box.\n"
+    assert check_subject(issue) == ["empty"], "a subject of only spaces counts as empty"
+
+
+def test_no_subject_line_is_missing() -> None:
+    issue: str = "Preview: Your monthly tea box.\n\nHi {{first_name}},\n"
+    assert check_subject(issue) == ["missing"], "an issue with no Subject line is missing its subject"
 
 
 # Behaviors still checked by hand (they need the command line, not a function):

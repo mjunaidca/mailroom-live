@@ -124,6 +124,9 @@ Rules for the agent:
 4. Don't explain unless asked during Predict/Run. Explain line by line during Investigate.
 5. Never accept totals, dates or amounts a model "worked out" in chat: write a function plus an
    `assert`, and run it.
+6. **When something breaks, show the full error first.** Paste the complete output exactly as
+   printed (traceback and all, not a summary) *before* changing any code or data. The learner
+   reads it first; fixes come after.
 
 ## 5. Project conventions
 

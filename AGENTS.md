@@ -14,6 +14,20 @@ The agent writes code; the learner reads, predicts, checks and directs.
 - Language: **Python only** (the chapter also teaches TypeScript; this repo does not use it).
 - Domain: a "mailroom": features are decided together with the learner, one small step at a time.
 
+### The lab we follow: Mailroom Lab
+
+<https://claude.ai/artifact/KHyQVY95yEYdSZQgueA5Fi>
+
+This is the step-by-step track for the project: 27 steps (0 to 26) across Chapters 13 to 15,
+grouped as 0 The base · A Read and check · B Shape the code · C Talk to a service ·
+D Ship like a team · E Into your studio. Each step names its lesson, the problem, what the learner
+decides first, what their prompt must say, Investigate/Modify tasks, and a fresh-session Check.
+
+- The learner writes their own prompts; the lab's sample prompts are only for comparison afterwards.
+- The lab's practice files (`subscribers.csv`, `issue-01.md`, `email-rules.md`, `new-signups.csv`)
+  are made-up data. No real emails are ever sent.
+- If the lab and this file disagree (for example the concept boundary in §3), **this file wins**.
+
 ## 2. Where the learner is
 
 **Completed: up to and including lesson 13.7.** Update this line whenever the learner finishes a lesson.
@@ -66,6 +80,15 @@ STOP and **teach the concept first** (see §4), then use it. Never slip a new fe
   `[0]` is the file name, `[1]` the first word after it
 - `if __name__ == "__main__":` front door: runs only when the file is run directly, not imported
 
+### Taught early (ahead of 13.9, via PRIMM in this repo)
+
+- `from datetime import date, timedelta`; a `date` is a calendar square, text is only a picture of it
+- `date.fromisoformat("2026-11-20")` text → date; `day.isoformat()` date → text
+- `day - timedelta(days=30)` / `day + timedelta(days=1)`: steps, the start day is not counted
+- Comparing dates with `<=` etc.; `date + "text"` raises `TypeError`
+- `day.weekday()`: Monday is `0` … Sunday is `6`; step with `while not day.weekday() == 0:`
+- `day.year`, `day.month` as `int`; `date(year, month, 1)` builds a date; month 13 rolls to 1, year + 1
+
 ### Not yet learned (teach first before using)
 
 Anything not listed above, including: `len()`,
@@ -108,6 +131,10 @@ Rules for the agent:
 - Every variable that needs it and every function has type labels (parameters and return type).
 - Every function gets at least one hand-checkable `assert` of its promise.
 - Money is stored as **whole cents in `int`** (e.g. $48.25 → `4825`). Convert to dollars only when printing.
+- **Never read today's date inside the logic. Pass the run date in.** Functions take the run date
+  as a parameter (e.g. `next_send(run_date: str) -> str`), so the same input always gives the same
+  output and a check can pin any day. Only the command line (the `if __name__ == "__main__":` front
+  door) may read today's date, and only when `--run-date` is left out.
 - Dates as year-first text (`"2027-03-05"`) until 13.9 teaches dates properly.
 - Keep it simple: plain functions, lists and dicts. No classes or libraries until taught.
 

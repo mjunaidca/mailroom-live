@@ -103,6 +103,10 @@ STOP and **teach the concept first** (see §4), then use it. Never slip a new fe
 - `line.removeprefix("Subject:")` → `str`: the text with that beginning taken off (unchanged if it isn't there)
 - `text.strip()` → `str`: the text with spaces trimmed off both ends; only spaces becomes `""`
 - A `return` inside a loop stops the whole function right there; code after the loop runs only if no `return` fired
+- `"piece" in text` → `bool`: does this piece appear anywhere inside the text
+- `text.count("piece")` → `int`: how many times the piece appears in the text
+- `+` on lists joins them into one longer list, order kept: `["a"] + ["b"]` is `["a", "b"]`; `[]` counts as "no"
+- `sys.exit(1)` stops the program and tells the terminal "failed"; `sys.exit(0)` means "passed"; `echo $?` shows it
 
 ### Not yet learned (teach first before using)
 

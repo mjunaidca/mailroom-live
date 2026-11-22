@@ -71,9 +71,67 @@ def check_subject(issue_text: str) -> list[str]:
     return ["missing"]  # no line began with "Subject:"
 
 
+def check_preview(issue_text: str) -> list[str]:
+    """Promise: give back the problems with the Preview line; [] means the preview is fine."""
+    for line in issue_text.splitlines():
+        if line.startswith("Preview:"):  # the line that begins with "Preview:"
+            preview: str = line.removeprefix("Preview:").strip()  # the words after it, outer spaces removed
+            if not preview:  # "" counts as "no": nothing left, or only spaces
+                return ["empty"]
+            if len(preview) > 90:  # the rule: 90 characters or fewer
+                return ["too long"]
+            return []
+    return ["missing"]  # no line began with "Preview:"
+
+
+def check_greeting(issue_text: str) -> list[str]:
+    """Promise: give back ["missing greeting"] unless the issue greets the reader with {{first_name}}."""
+    if "{{first_name}}" in issue_text:  # `in`: does this text appear anywhere inside the issue?
+        return []
+    return ["missing greeting"]
+
+
+def check_link(issue_text: str) -> list[str]:
+    """Promise: give back the problem with the links; [] means there is exactly one link."""
+    links: int = issue_text.count("](http")  # every [text](http://...) or [text](https://...) has "](http" once
+    if links == 0:
+        return ["no link"]
+    if links > 1:
+        return ["too many links"]
+    return []
+
+
+def check_footer(issue_text: str) -> list[str]:
+    """Promise: give back ["missing footer"] unless both footer lines are there."""
+    has_because: bool = False
+    has_unsubscribe: bool = False
+    for line in issue_text.splitlines():
+        if line.startswith("You're getting this because"):
+            has_because = True
+        if "Unsubscribe: {{unsubscribe_url}}" in line:  # anywhere in the line, not only at the start
+            has_unsubscribe = True
+    if has_because and has_unsubscribe:
+        return []
+    return ["missing footer"]  # one problem, whether one footer line is missing or both
+
+
+def check_issue(issue_text: str) -> list[str]:
+    """Promise: give back every problem with the issue, in the order of docs/email-rules.md; [] means fine."""
+    subject_problems: list[str] = ["subject " + problem for problem in check_subject(issue_text)]
+    preview_problems: list[str] = ["preview " + problem for problem in check_preview(issue_text)]
+    # `+` on lists joins them into one longer list, keeping the order
+    return (
+        subject_problems
+        + preview_problems
+        + check_greeting(issue_text)
+        + check_link(issue_text)
+        + check_footer(issue_text)
+    )
+
+
 # Front door: only runs for `uv run mailroom.py <name>`, not when imported
 if __name__ == "__main__":
-    command: str = sys.argv[1]  # "subscribers" or "next-send"
+    command: str = sys.argv[1]  # "subscribers", "next-send" or "check"
 
     # Options: the word right AFTER "--run-date" is the date, right AFTER "--since-days" is the days
     run_date: str = ""
@@ -101,3 +159,13 @@ if __name__ == "__main__":
 
     if command == "next-send":
         print("next send:", next_send(run_date))
+
+    if command == "check":
+        issue_path: str = sys.argv[2]  # the word after "check": which issue file to check
+        problems: list[str] = check_issue(read_subscribers(issue_path))
+        if problems:  # [] counts as "no": an empty list means no problems
+            for problem in problems:
+                print(problem)
+            sys.exit(1)  # stop here and tell the terminal "failed" (exit code 1)
+        print("OK")
+        sys.exit(0)  # tell the terminal "passed" (exit code 0)

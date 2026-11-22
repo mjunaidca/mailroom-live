@@ -3,7 +3,15 @@
 # pytest finds every function whose name starts with "test_" and runs it.
 # A test passes if none of its asserts fail.
 
-from mailroom import read_subscribers, count_emails, count_group, count_joined_since, next_send, check_subject
+from mailroom import (
+    read_subscribers,
+    count_emails,
+    count_group,
+    count_joined_since,
+    next_send,
+    check_subject,
+    check_issue,
+)
 
 
 # Behavior 1
@@ -88,6 +96,75 @@ def test_no_subject_line_is_missing() -> None:
     assert check_subject(issue) == ["missing"], "an issue with no Subject line is missing its subject"
 
 
+# Behavior 13: check_issue(issue_text) checks every rule in docs/email-rules.md and gives back
+# all the problems, in the order the rules are written; [] means the issue is fine.
+# The learner decided these cases and their answers. Never change an answer to make a test pass.
+
+# The good pieces of an issue. Each test swaps in one broken piece to see one problem.
+SUBJECT: str = "Subject: The Steep Club opens Monday"
+PREVIEW: str = "Preview: Your monthly tea box, chosen by our blenders."
+GREETING: str = "Hi {{first_name}},"
+ONE_LINK: str = "[Join The Steep Club](https://kettlebird.example/steep-club)"
+SIGN_OFF: str = "Steep well,\nThe Kettlebird Tea team"
+FOOTER: str = (
+    "You're getting this because you joined the Kettlebird Tea waitlist.\n"
+    + "Kettlebird Tea, {{company_address}} · Unsubscribe: {{unsubscribe_url}}"
+)
+
+
+def make_issue(preview: str, greeting: str, links: str, footer: str) -> str:
+    """Promise: put the pieces together into one issue, a blank line between each part."""
+    return SUBJECT + "\n" + preview + "\n\n" + greeting + "\n\n" + links + "\n\n" + SIGN_OFF + "\n\n" + footer + "\n"
+
+
+def test_issue_01_has_no_problems() -> None:
+    issue: str = read_subscribers("issues/issue-01.md")  # read_subscribers reads any file as text
+    assert check_issue(issue) == [], "issue-01.md follows every rule"
+
+
+def test_a_90_character_preview_has_no_problems() -> None:
+    preview: str = "Preview: Your monthly tea box, chosen by our blenders. Founding members get the first box for free."
+    assert check_issue(make_issue(preview, GREETING, ONE_LINK, FOOTER)) == [], "90 characters is allowed"
+
+
+def test_a_91_character_preview_is_too_long() -> None:
+    preview: str = "Preview: Your monthly tea box, chosen by our blenders. Founding members get the first box for free!!"
+    assert check_issue(make_issue(preview, GREETING, ONE_LINK, FOOTER)) == ["preview too long"], "91 is one too many"
+
+
+def test_an_empty_preview_is_empty() -> None:
+    assert check_issue(make_issue("Preview:", GREETING, ONE_LINK, FOOTER)) == ["preview empty"], "nothing after Preview:"
+
+
+def test_no_preview_line_is_missing() -> None:
+    assert check_issue(make_issue("", GREETING, ONE_LINK, FOOTER)) == ["preview missing"], "no line starts Preview:"
+
+
+def test_no_first_name_is_a_missing_greeting() -> None:
+    issue: str = make_issue(PREVIEW, "Hi there,", ONE_LINK, FOOTER)
+    assert check_issue(issue) == ["missing greeting"], "the greeting must use {{first_name}}"
+
+
+def test_two_links_are_too_many_even_when_one_is_http() -> None:
+    links: str = ONE_LINK + " or [see the teas](http://kettlebird.example/teas)"  # two links on one line
+    assert check_issue(make_issue(PREVIEW, GREETING, links, FOOTER)) == ["too many links"], "exactly one link"
+
+
+def test_no_link_at_all_is_no_link() -> None:
+    issue: str = make_issue(PREVIEW, GREETING, "Visit our shop soon.", FOOTER)
+    assert check_issue(issue) == ["no link"], "exactly one link: zero is not enough"
+
+
+def test_only_one_footer_line_is_a_missing_footer() -> None:
+    footer: str = "You're getting this because you joined the Kettlebird Tea waitlist."
+    assert check_issue(make_issue(PREVIEW, GREETING, ONE_LINK, footer)) == ["missing footer"], "both lines needed"
+
+
+def test_no_footer_and_no_greeting_are_two_problems() -> None:
+    issue: str = make_issue(PREVIEW, "Hello,", ONE_LINK, "")
+    assert check_issue(issue) == ["missing greeting", "missing footer"], "two problems, in rule order"
+
+
 # Behaviors still checked by hand (they need the command line, not a function):
 #
 # Behavior 4: `uv run mailroom.py subscribers` reads data/subscribers.csv and prints exactly:
@@ -108,3 +185,9 @@ def test_no_subject_line_is_missing() -> None:
 #
 # Behavior 11: leave out --run-date and both commands use today's date.
 # Only the front door (`if __name__ == "__main__":`) may read today's date.
+#
+# Behavior 14: `uv run mailroom.py check issues/issue-01.md` prints exactly `OK`,
+# and `echo $?` right after it prints `0`.
+#
+# Behavior 15: `uv run mailroom.py check <a broken issue file>` prints each problem on its
+# own line (the same words check_issue gives back, in the same order), and `echo $?` prints `1`.

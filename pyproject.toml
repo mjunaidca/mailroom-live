@@ -6,6 +6,18 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = []
 
+# `uv run mailroom ...` runs main() in src/mailroom/commands.py
+[project.scripts]
+mailroom = "mailroom.commands:main"
+
+[build-system]
+requires = ["uv_build>=0.9.9,<0.10.0"]
+build-backend = "uv_build"
+
+# The package is called mailroom (src/mailroom), not mailroom_live
+[tool.uv.build-backend]
+module-name = "mailroom"
+
 [dependency-groups]
 dev = [
     "pyright>=1.1.414",

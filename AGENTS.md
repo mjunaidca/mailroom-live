@@ -108,6 +108,14 @@ STOP and **teach the concept first** (see §4), then use it. Never slip a new fe
 - `+` on lists joins them into one longer list, order kept: `["a"] + ["b"]` is `["a", "b"]`; `[]` counts as "no"
 - `sys.exit(1)` stops the program and tells the terminal "failed"; `sys.exit(0)` means "passed"; `echo $?` shows it
 
+### In use ahead of 14.1 (the learner asked for it; no PRIMM cycle on it yet)
+
+- A **package** is a folder of modules: `src/mailroom/`, with an `__init__.py` that marks it as one.
+  A **module** is one `.py` file in it, e.g. `src/mailroom/checks.py`.
+- `from mailroom.checks import check_subject`: package name, a dot, the module, then the function.
+- `uv run mailroom ...` runs `main()` in `commands.py`, because `pyproject.toml` says so under
+  `[project.scripts]`. `uv sync` installs the package so the tests and the command can find it.
+
 ### Not yet learned (teach first before using)
 
 Anything not listed above, including:
@@ -153,24 +161,35 @@ Rules for the agent:
 ## 5. Project conventions
 
 - Tooling: **uv**, Python **3.14** (see `.python-version`), **pyright in strict mode** (`pyproject.toml`).
+- **One module per job. Only the commands module prints.** The code is a package in `src/mailroom/`:
+
+  | Module | Its one job |
+  | --- | --- |
+  | `subscribers.py` | read a file, count subscribers, work out dates (`read_subscribers`, `count_*`, `next_send`) |
+  | `checks.py` | one check per rule in `docs/email-rules.md` (`check_subject`, `check_preview`, …) |
+  | `issue.py` | check a whole issue with every rule, in order (`check_issue`) |
+  | `commands.py` | the front door: reads the command line, reads today's date, prints, exits |
+
+  Every other module gives values back with `return` and never prints. New code goes in the module
+  whose job it is; a new job gets a new module.
 - Every variable that needs it and every function has type labels (parameters and return type).
 - Every function gets at least one hand-checkable `assert` of its promise, written as a **pytest test**
-  in `test_mailroom.py` (the old `checks.py` is gone; its checks are now tests). Behaviors that need the
+  in `test_mailroom.py` (the old root-level `checks.py` script is gone; its checks are now tests). Behaviors that need the
   command line (the front door's printed output) are still listed there as comments and checked by hand.
 - Money is stored as **whole cents in `int`** (e.g. $48.25 → `4825`). Convert to dollars only when printing.
 - **Never read today's date inside the logic. Pass the run date in.** Functions take the run date
   as a parameter (e.g. `next_send(run_date: str) -> str`), so the same input always gives the same
-  output and a check can pin any day. Only the command line (the `if __name__ == "__main__":` front
-  door) may read today's date, and only when `--run-date` is left out.
+  output and a check can pin any day. Only the commands module (`main()` in `src/mailroom/commands.py`)
+  may read today's date, and only when `--run-date` is left out.
 - Dates as year-first text (`"2027-03-05"`) until 13.9 teaches dates properly.
 - Keep it simple: plain functions, lists and dicts. No classes or libraries until taught.
 
 Commands:
 
 ```bash
-uv run python main.py   # run
-uv run pytest           # tests: must all pass before any commit
-uv run pyright          # type check: must show 0 errors before any commit
+uv run mailroom subscribers                 # run a command: subscribers, next-send, check <issue file>
+uv run pytest                               # tests: must all pass before any commit
+uv run pyright                              # type check: must show 0 errors before any commit
 ```
 
 ## 6. Git workflow

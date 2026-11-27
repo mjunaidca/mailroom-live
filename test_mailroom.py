@@ -1,17 +1,17 @@
-# test_mailroom.py: tests for the tools in mailroom.py
+# test_mailroom.py: tests for the tools in the mailroom package (src/mailroom)
 # Run with: uv run pytest
 # pytest finds every function whose name starts with "test_" and runs it.
 # A test passes if none of its asserts fail.
 
-from mailroom import (
+from mailroom.subscribers import (
     read_subscribers,
     count_emails,
     count_group,
     count_joined_since,
     next_send,
-    check_subject,
-    check_issue,
 )
+from mailroom.checks import check_subject
+from mailroom.issue import check_issue
 
 
 # Behavior 1
@@ -79,6 +79,13 @@ def test_a_50_character_subject_has_no_problems() -> None:
 def test_a_51_character_subject_is_too_long() -> None:
     issue: str = "Subject: Your Steep Club box ships on Monday with fresh teas\nPreview: Your monthly tea box.\n"
     assert check_subject(issue) == ["too long"], "51 characters is one too many"
+
+
+# We count with len(), not by what a reader sees: a skin-tone emoji like 👍🏽 is a thumb plus a
+# skin-tone dot, so it counts as 2. This subject looks like 49 characters but len() counts 51.
+def test_a_skin_tone_emoji_counts_as_two_characters() -> None:
+    issue: str = "Subject: 👍🏽 Your Steep Club box ships on Monday, new teas 👋🏽\nPreview: Your monthly tea box.\n"
+    assert check_subject(issue) == ["too long"], "each skin-tone emoji counts as 2, so this is 51"
 
 
 def test_an_empty_subject_is_empty() -> None:
@@ -167,27 +174,27 @@ def test_no_footer_and_no_greeting_are_two_problems() -> None:
 
 # Behaviors still checked by hand (they need the command line, not a function):
 #
-# Behavior 4: `uv run mailroom.py subscribers` reads data/subscribers.csv and prints exactly:
+# Behavior 4: `uv run mailroom subscribers` reads data/subscribers.csv and prints exactly:
 #
 #   24 emails
 #   daily-drinkers: 8
 #   gift-buyers: 8
 #   tea-curious: 8
 #
-# Behavior 9: `uv run mailroom.py subscribers --since-days 30 --run-date 2026-11-20`
+# Behavior 9: `uv run mailroom subscribers --since-days 30 --run-date 2026-11-20`
 # prints the four lines above, then:
 #
 #   7 joined in the last 30 days
 #
-# Behavior 10: `uv run mailroom.py next-send --run-date 2026-11-20` prints exactly:
+# Behavior 10: `uv run mailroom next-send --run-date 2026-11-20` prints exactly:
 #
 #   next send: 2026-12-07
 #
 # Behavior 11: leave out --run-date and both commands use today's date.
-# Only the front door (`if __name__ == "__main__":`) may read today's date.
+# Only the commands module (`main()` in src/mailroom/commands.py) may read today's date.
 #
-# Behavior 14: `uv run mailroom.py check issues/issue-01.md` prints exactly `OK`,
+# Behavior 14: `uv run mailroom check issues/issue-01.md` prints exactly `OK`,
 # and `echo $?` right after it prints `0`.
 #
-# Behavior 15: `uv run mailroom.py check <a broken issue file>` prints each problem on its
+# Behavior 15: `uv run mailroom check <a broken issue file>` prints each problem on its
 # own line (the same words check_issue gives back, in the same order), and `echo $?` prints `1`.

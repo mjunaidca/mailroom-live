@@ -98,7 +98,8 @@ STOP and **teach the concept first** (see §4), then use it. Never slip a new fe
 
 ### In use ahead of 13.8 (the learner asked for it; no PRIMM cycle on it yet)
 
-- `len(text)` → `int`: how many characters are in the text (spaces and punctuation count)
+- `len(text)` → `int`: how many characters are in the text (spaces and punctuation count).
+  `len(items)` on a list → `int`: how many items are in it (`len(issue.links)`)
 - `line.startswith("Subject:")` → `bool`: does the text begin with exactly these characters
 - `line.removeprefix("Subject:")` → `str`: the text with that beginning taken off (unchanged if it isn't there)
 - `text.strip()` → `str`: the text with spaces trimmed off both ends; only spaces becomes `""`
@@ -116,11 +117,33 @@ STOP and **teach the concept first** (see §4), then use it. Never slip a new fe
 - `uv run mailroom ...` runs `main()` in `commands.py`, because `pyproject.toml` says so under
   `[project.scripts]`. `uv sync` installs the package so the tests and the command can find it.
 
+### Taught early (ahead of classes, via PRIMM in this repo)
+
+- `from dataclasses import dataclass`, then `@dataclass` on top of `class Subscriber:` with one
+  labelled field per line (`first_name: str`). It works like a printed form: each object is one filled-in copy.
+- Make one: `Subscriber("Ayesha", ...)` in field order, or by name `Subscriber(first_name="Ayesha", ...)`.
+- Read a field with a dot: `ayesha.first_name`. `print(ayesha)` shows every field name and value.
+- `==` is `True` when every field matches.
+- A field that doesn't exist (`ayesha.phone`): pyright reports it before running, and running it raises `AttributeError`.
+- Each filled-in copy is an **instance** of the class: `ayesha` and `tom` are instances of `Subscriber`.
+- A **method** is a function written inside the class: `def greeting(self) -> str:`. Its first parameter
+  is `self`, the object before the dot. `ayesha.greeting()` is short for `Subscriber.greeting(ayesha)`.
+- Inside a method, `self.group` is this instance's field. A plain `group` is a parameter passed in the brackets.
+- Leaving out an argument (`tom.is_in()`): pyright reports it, and running it raises `TypeError` at the call,
+  before the method's body runs. `self` is never "missing": the object before the dot fills it.
+- `text.replace(old, new)` → `str`: a new text with **every** `old` swapped for `new`, like Find and Replace on
+  a photocopy. The original text is unchanged; keep the result in a variable. It's case-sensitive
+  (`{{FIRST_NAME}}` is not `{{first_name}}`), and the text comes back unchanged if `old` isn't in it.
+- `str | None` as a type label: "text, or nothing at all". `""` is an empty envelope, `None` is no envelope.
+- `x is None` → `bool`: true only for `None`. `not x` is true for both `""` and `None`, so use `is None`
+  when the two must be told apart (no Subject line vs a blank one).
+- On a `str | None`, pyright refuses `len(x)` until `x is None` has been checked; running it on `None` raises `TypeError`.
+
 ### Not yet learned (teach first before using)
 
 Anything not listed above, including:
-`elif`, f-strings, other string methods (`.lower()`, `.replace()`, …), slicing, `isinstance()`, tuples, sets, `try`/`except`,
-the `csv` module, dates, classes, `dataclass`, `input()`, `is None`, `range()`,
+`elif`, f-strings, other string methods (`.lower()`, …), slicing, `isinstance()`, tuples, sets, `try`/`except`,
+the `csv` module, dates, plain classes (`__init__`), `input()`, `range()`,
 `enumerate()`, list methods like `.append()`, `match`, async, external packages.
 
 When in doubt whether something was taught: **ask the learner**, don't assume.
@@ -165,13 +188,17 @@ Rules for the agent:
 
   | Module | Its one job |
   | --- | --- |
-  | `subscribers.py` | read a file, count subscribers, work out dates (`read_subscribers`, `count_*`, `next_send`) |
-  | `checks.py` | one check per rule in `docs/email-rules.md` (`check_subject`, `check_preview`, …) |
-  | `issue.py` | check a whole issue with every rule, in order (`check_issue`) |
+  | `subscribers.py` | what a `Subscriber` is, reading them, counting them, working out dates (`parse_subscribers`, `read_subscribers`, `count_*`, `next_send`) |
+  | `issue.py` | what an `Issue` is and building one from issue text (`Issue.personalize`, `parse_issue`, `read_issue`) |
+  | `checks.py` | one check per rule in `docs/email-rules.md` (`check_subject`, …), and `check_issue` to run them all in order |
   | `commands.py` | the front door: reads the command line, reads today's date, prints, exits |
 
   Every other module gives values back with `return` and never prints. New code goes in the module
-  whose job it is; a new job gets a new module.
+  whose job it is; a new job gets a new module. Imports go one way only: `checks.py` imports from
+  `issue.py`, never the other way round (two modules importing each other is a circular import).
+- **Pass `Subscriber` and `Issue` objects around, never raw rows or raw text.** Text becomes an object
+  once, at the edge (`read_subscribers`/`parse_subscribers`, `read_issue`/`parse_issue`); every other
+  function takes and gives back the objects. Tests that build their input as text wrap it in `parse_*`.
 - Every variable that needs it and every function has type labels (parameters and return type).
 - Every function gets at least one hand-checkable `assert` of its promise, written as a **pytest test**
   in `test_mailroom.py` (the old root-level `checks.py` script is gone; its checks are now tests). Behaviors that need the
@@ -181,8 +208,10 @@ Rules for the agent:
   as a parameter (e.g. `next_send(run_date: str) -> str`), so the same input always gives the same
   output and a check can pin any day. Only the commands module (`main()` in `src/mailroom/commands.py`)
   may read today's date, and only when `--run-date` is left out.
-- Dates as year-first text (`"2027-03-05"`) until 13.9 teaches dates properly.
-- Keep it simple: plain functions, lists and dicts. No classes or libraries until taught.
+- Dates as year-first text (`"2027-03-05"`) on the command line and in files; inside a `Subscriber`
+  a date is a `date` (`joined_on`).
+- Keep it simple: plain functions, lists, dicts and `@dataclass` objects. No plain classes (`__init__`) or
+  libraries until taught.
 
 Commands:
 

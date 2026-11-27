@@ -3,8 +3,16 @@
 import sys
 from datetime import date
 
-from mailroom.subscribers import read_subscribers, count_emails, count_group, count_joined_since, next_send
-from mailroom.issue import check_issue
+from mailroom.subscribers import (
+    Subscriber,
+    read_subscribers,
+    count_emails,
+    count_group,
+    count_joined_since,
+    next_send,
+)
+from mailroom.issue import read_issue
+from mailroom.checks import check_issue
 
 
 def main() -> None:
@@ -26,21 +34,21 @@ def main() -> None:
     run_date = run_date or date.today().isoformat()
 
     if command == "subscribers":
-        text: str = read_subscribers("data/subscribers.csv")
-        print(count_emails(text), "emails")
+        subscribers: list[Subscriber] = read_subscribers("data/subscribers.csv")
+        print(count_emails(subscribers), "emails")
         groups: list[str] = ["daily-drinkers", "gift-buyers", "tea-curious"]
         for group in groups:
-            print(group + ":", count_group(text, group))
+            print(group + ":", count_group(subscribers, group))
         if since_days:  # "" counts as "no": only when --since-days was given
             days: int = int(since_days)
-            print(count_joined_since(text, run_date, days), "joined in the last", days, "days")
+            print(count_joined_since(subscribers, run_date, days), "joined in the last", days, "days")
 
     if command == "next-send":
         print("next send:", next_send(run_date))
 
     if command == "check":
         issue_path: str = sys.argv[2]  # the word after "check": which issue file to check
-        problems: list[str] = check_issue(read_subscribers(issue_path))
+        problems: list[str] = check_issue(read_issue(issue_path))
         if problems:  # [] counts as "no": an empty list means no problems
             for problem in problems:
                 print(problem)
